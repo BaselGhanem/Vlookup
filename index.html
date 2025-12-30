@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اكس اكاديمي - تحدي VLOOKUP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #099999;
+            --primary-dark: #067a7a;
+            --bg: #f0f4f4;
+            --white: #ffffff;
+            --text: #333;
+            --error: #e74c3c;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --brand-accent: #FFD700; /* لون ذهبي لكلمة اكس */
+        }
+
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; transition: all 0.3s ease; }
+        
+        body {
+            margin: 0; padding: 0; background: var(--bg); color: var(--text);
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            user-select: none; overflow-x: hidden;
+        }
+
+        /* --- New Header Styling --- */
+        .main-header {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 15px 0;
+            box-shadow: 0 4px 15px rgba(9, 153, 153, 0.3);
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 900px; /* نفس عرض المحتوى الرئيسي */
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .brand-name {
+            color: white;
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        .brand-x {
+            color: var(--brand-accent); /* تلوين كلمة اكس */
+        }
+
+       .header-logo {
+            height: auto;  /* كبرناها من 50 لـ 80 */
+            width: auto;   /* عشان يحافظ على التناسب */
+            max-width: 150px; /* عشان ما يغطي عالكلام بالموبايل */
+            object-fit: contain; /* عشان تضل الصورة كاملة جوا المساحة */
+        }
+        /* ------------------------- */
+
+        /* Canvas & Container */
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        
+        .container {
+            width: 100%; max-width: 900px; background: var(--white);
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(9, 153, 153, 0.15);
+            padding: 40px; margin: 0 20px 40px 20px; position: relative;
+            min-height: 600px; display: flex; flex-direction: column; z-index: 10;
+        }
+
+        /* Timer */
+        .timer-wrapper { position: relative; margin: 30px 0 20px 0; }
+        .timer-bar-bg { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--success); width: 100%; transition: width 1s linear; }
+        .timer-display { position: absolute; top: -35px; left: 0; font-weight: bold; color: #777; font-size: 1.1rem; }
+
+        /* Questions */
+        .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .question-text { font-size: 1.8rem; margin-bottom: 30px; color: #2c3e50; line-height: 1.4; font-weight: 800; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        @media(min-width: 600px) { .options-grid { grid-template-columns: 1fr 1fr; } }
+
+        .option-btn {
+            background: #f8f9fa; border: 2px solid #e9ecef; padding: 20px; border-radius: 12px;
+            text-align: right; cursor: pointer; font-size: 1.2rem; position: relative;
+            display: flex; flex-direction: column; justify-content: center; min-height: 90px;
+        }
+        .option-btn:hover { border-color: var(--primary); background: #e6f7f7; transform: translateY(-3px); }
+        .option-content { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Group Badges on Options */
+        .assigned-badge {
+            margin-top: 10px; font-size: 0.9rem; background: rgba(9, 153, 153, 0.1); 
+            color: var(--primary); padding: 5px 10px; border-radius: 8px; display: none;
+            width: 100%; text-align: center; font-weight: bold;
+        }
+
+        /* Inputs */
+        input, select, textarea { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; font-size: 1.1rem; margin-top: 5px; margin-bottom: 20px; }
+        textarea { height: 100px; resize: vertical; }
+        
+        .btn-primary {
+            background: var(--primary); color: white; border: none; padding: 15px; font-size: 1.2rem;
+            border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .btn-check-group {
+            background: #333; color: white; margin-top: 20px; display: none;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content { 
+            background: white; width: 90%; max-width: 500px; padding: 30px; 
+            border-radius: 20px; text-align: center; animation: popIn 0.3s ease;
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        /* Student Selector inside Modal */
+        .student-list-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; text-align: right;
+        }
+        .student-checkbox {
+            padding: 10px; background: #f9f9f9; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; border: 1px solid #ddd;
+        }
+        .student-checkbox.checked { background: #e6f7f7; border-color: var(--primary); font-weight: bold; }
+
+        /* Leaderboard */
+        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .leaderboard-table th { background: var(--primary); color: white; padding: 10px; }
+        .leaderboard-table td { border-bottom: 1px solid #eee; padding: 10px; font-size: 1.1rem; }
+        .rank-1 { background-color: #ffd70033; font-weight: bold; }
+        
+        /* Screens */
+        .screen { display: none; height: 100%; flex-direction: column; justify-content: center; }
+        .screen.active { display: flex; }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } 100% { transform: translateX(0); } }
+
+    </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<header class="main-header">
+    <div class="header-content">
+        <h1 class="brand-name">
+            <span class="brand-x">اكس</span> اكاديمي
+        </h1>
+        <img src="https://raw.githubusercontent.com/BaselGhanem/Basics1/refs/heads/main/X%20Academy%20black.png" alt="X Academy Logo" class="header-logo">
+    </div>
+</header>
+
+<div class="container">
+    
+    <div id="login-screen" class="screen active">
+        <h2 style="color: var(--primary); text-align: center; margin-bottom: 30px;">تحدي VLOOKUP</h2>
+        
+        <label>صفة المشارك:</label>
+        <select id="user-type" onchange="toggleGroupInput()">
+            <option value="male">شب </option>
+            <option value="female">صبية</option>
+            <option value="group">مجموعة (تحدي جماعي)</option>
+        </select>
+
+        <div id="single-input-area">
+            <label>الاسم:</label>
+            <input type="text" id="username" placeholder="اكتب اسمك...">
+        </div>
+
+        <div id="group-input-area" style="display: none;">
+            <label>أسماء الطلاب في المجموعة:</label>
+            <textarea id="group-names" placeholder="اكتب الأسماء هنا.. (مثال: أحمد، خالد، سارة) كل اسم بسطر أو بينهم فاصلة"></textarea>
+            <small style="color: #666;">سيتم احتساب النقاط لكل شخص بناءً على إجاباته.</small>
+        </div>
+
+        <button class="btn-primary" onclick="startQuiz()">يلا نبدأ التحدي!</button>
+    </div>
+
+    <div id="quiz-screen" class="screen">
+        <div class="q-header">
+            <div id="user-display" style="font-weight: bold; color: var(--primary); font-size: 1.2rem;"></div>
+            <div id="q-counter" style="background: #eee; padding: 8px 20px; border-radius: 20px; font-size: 1rem; font-weight: bold;"></div>
+        </div>
+
+        <div class="timer-wrapper">
+            <div class="timer-display"><span id="time-val">30</span> ثانية</div>
+            <div class="timer-bar-bg">
+                <div class="timer-bar" id="timer-bar"></div>
+            </div>
+        </div>
+
+        <h2 class="question-text" id="q-text"></h2>
+        <div class="options-grid" id="opt-container"></div>
+        
+        <button id="btn-submit-group" class="btn-primary btn-check-group" onclick="finalizeGroupQuestion()">اعتماد الإجابات و إنهاء السؤال</button>
+    </div>
+
+    <div id="result-screen" class="screen" style="text-align: center;">
+        <h2 id="end-greeting" style="font-size: 2rem;"></h2>
+        
+        <div id="single-result-area">
+            <div style="font-size: 4rem; font-weight: 900; color: var(--primary); margin: 20px 0;" id="final-score"></div>
+            <div id="single-review" style="text-align: right; max-height: 250px; overflow-y: auto;"></div>
+        </div>
+
+        <div id="group-result-area" style="display: none;">
+            <h3 style="color: var(--primary);">🏆 لوحة المتصدرين (Leaderboard) 🏆</h3>
+            <table class="leaderboard-table">
+                <thead><tr><th>الترتيب</th><th>الاسم</th><th>النقاط</th></tr></thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+        </div>
+
+        <button class="btn-primary" onclick="location.reload()" style="margin-top:20px;">تحدي جديد</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="student-modal">
+    <div class="modal-content">
+        <h3>مين جاوب هاد الجواب؟</h3>
+        <p id="selected-opt-text" style="color: var(--primary); font-weight: bold; margin-bottom: 15px;"></p>
+        <div id="student-list" class="student-list-grid"></div>
+        <button class="btn-primary" onclick="confirmStudentSelection()">تأكيد الاختيار</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="feedback-modal">
+    <div class="modal-content">
+        <span style="font-size: 3rem;" id="fb-icon"></span>
+        <h2 id="fb-title"></h2>
+        <div id="fb-details" style="margin: 15px 0; color: #555;"></div>
+        <button class="btn-primary" onclick="nextQuestion()" id="fb-btn">السؤال التالي</button>
+    </div>
+</div>
+
+<script>
+    // --- Data ---
+    const questions = [
+        { text: "شو الوظيفة الرئيسية لدالة VLOOKUP؟", opts: ["جمع أرقام", "بحث عمودي عن قيمة", "بحث أفقي", "ترتيب أبجدي"], correct: 1 },
+        { text: "أول جزء (Argument) بنكتبه داخل دالة VLOOKUP هو:", opts: ["الجدول (Table_array)", "قيمة البحث (Lookup_value)", "رقم العمود", "نوع المطابقة"], correct: 1 },
+        { text: "عشان VLOOKUP تشتغل صح، قيمة البحث لازم تكون موجودة وين؟", opts: ["أي عمود", "العمود الأول (يسار/يمين)", "آخر عمود", "الصف الأول"], correct: 1 },
+        { text: "للبحث المطابق تماماً (Exact Match)، بنستخدم:", opts: ["TRUE", "1", "FALSE", "Nothing"], correct: 2 },
+        { text: "الرقم Col_index_num بيمثل شو؟", opts: ["رقم الصف", "رقم العمود اللي بدنا نتيجته", "عدد الأعمدة", "رقم العملية"], correct: 1 },
+        { text: "رمز الـ 'V' باسم الدالة يعني:", opts: ["Value", "Vertical", "Very Fast", "Visual"], correct: 1 },
+        { text: "اذا نسينا آخر جزء (Range_lookup)، الاكسل بعتبره:", opts: ["FALSE (مطابق)", "TRUE (تقريبي)", "Error", "0"], correct: 1 },
+        { text: "نتيجة #N/A بتعني غالباً:", opts: ["خطأ بالمعادلة", "القيمة غير موجودة", "العمود فاضي", "تعليق بالنظام"], correct: 1 },
+        { text: "للبحث عن تقديرات ضمن شرائح (Ranges)، بنستخدم:", opts: ["FALSE", "TRUE", "IFERROR", "SUM"], correct: 1 },
+        { text: "بحث عن رقم مخزن كـ Text داخل عمود Number يسبب:", opts: ["بشتغل عادي", "#N/A", "تصحيح تلقائي", "#VALUE!"], correct: 1 },
+        { text: "ليش بنستخدم $ مع Table_array؟", opts: ["تجميل", "تثبيت النطاق عند السحب", "تلوين", "اجباري للدالة"], correct: 1 },
+        { text: "هل VLOOKUP بتجيب قيم من يسار عمود البحث (بالانجليزي)؟", opts: ["نعم", "لا، بس لليمين", "نعم مع TRUE", "حسب النسخة"], correct: 1 },
+        { text: "إضافة عمود بمنتصف الجدول بـ VLOOKUP:", opts: ["تحديث تلقائي", "ممكن يعطي نتيجة غلط", "حذف المعادلة", "ممنوع"], correct: 1 },
+        { text: "هل VLOOKUP حساسة للأحرف (Case Sensitive)؟", opts: ["نعم", "لا", "حسب الويندوز", "مع TRUE فقط"], correct: 1 },
+        { text: "للبحث عن اسم يبدأ بـ 'Moh' بنستخدم:", opts: ["SEARCH", "Wildcard (*)", "مستحيل", "Moh فقط"], correct: 1 },
+        { text: "لإخفاء خطأ #N/A واستبداله بـ فراغ:", opts: ["IFNA / IFERROR", "Format", "Delete", "Zero"], correct: 0 },
+        { text: "للبحث بشرطين (الاسم + القسم) بـ VLOOKUP:", opts: ["مستحيل", "عمود مساعد (Helper Col)", "2 VLOOKUP", "AND"], correct: 1 },
+        { text: "شرط استخدام TRUE (بحث تقريبي):", opts: ["ترتيب تصاعدي للعمود الأول", "ترتيب تنازلي", "أرقام فقط", "لا شرط"], correct: 0 },
+        { text: "اختيار جدول البحث بناءً على شرط (Dynamic Table):", opts: ["Double VLOOKUP", "IF inside Table_array", "Merge Tables", "Validation"], correct: 1 },
+        { text: "نتيجة خاطئة (مش Error) مع Exact Match، السبب:", opts: ["الفرز", "عدم تثبيت الجدول ($)", "فراغات", "حجم الخط"], correct: 1 }
+    ];
+
+    // --- State Variables ---
+    let appState = {
+        mode: 'single', // 'single' or 'group'
+        singleUser: { name: '', gender: 'male', score: 0 },
+        groupUsers: [], // Array of { name, score, currentChoice }
+        qIndex: 0,
+        wrongAnswers: []
+    };
+
+    let timerInterval;
+    let timeLeft = 30;
+    const TIME_LIMIT = 30;
+    
+    // UI Helpers
+    function toggleGroupInput() {
+        const type = document.getElementById('user-type').value;
+        if (type === 'group') {
+            document.getElementById('single-input-area').style.display = 'none';
+            document.getElementById('group-input-area').style.display = 'block';
+        } else {
+            document.getElementById('single-input-area').style.display = 'block';
+            document.getElementById('group-input-area').style.display = 'none';
+        }
+    }
+
+    // --- Start Logic ---
+    function startQuiz() {
+        appState.qIndex = 0;
+        appState.wrongAnswers = [];
+        appState.groupUsers = [];
+        const type = document.getElementById('user-type').value;
+
+        if (type === 'group') {
+            appState.mode = 'group';
+            const rawNames = document.getElementById('group-names').value;
+            if (!rawNames.trim()) { alert("يرجى إدخال أسماء الطلاب"); return; }
+            
+            // Parse Names (split by comma or newline)
+            const names = rawNames.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
+            if (names.length < 1) { alert("أدخل اسم واحد على الأقل"); return; }
+            
+            appState.groupUsers = names.map(n => ({ name: n, score: 0, currentChoice: null }));
+            document.getElementById('user-display').innerText = `المجموعة: ${names.length} طلاب`;
+            document.getElementById('btn-submit-group').style.display = 'block';
+        } else {
+            appState.mode = 'single';
+            const name = document.getElementById('username').value.trim();
+            if (!name) { alert("يرجى كتابة الاسم"); return; }
+            appState.singleUser.name = name;
+            appState.singleUser.gender = type;
+            const title = type === 'male' ? "الشب" : "الصبية";
+            document.getElementById('user-display').innerText = `أهلاً ${title} ${name}`;
+            document.getElementById('btn-submit-group').style.display = 'none';
+        }
+
+        document.getElementById('login-screen').classList.remove('active');
+        document.getElementById('quiz-screen').classList.add('active');
+        loadQuestion();
+    }
+
+    // --- Question Logic ---
+    function loadQuestion() {
+        if (appState.qIndex >= questions.length) {
+            showResults();
+            return;
+        }
+
+        const q = questions[appState.qIndex];
+        document.getElementById('q-counter').innerText = `سؤال ${appState.qIndex + 1} / ${questions.length}`;
+        document.getElementById('q-text').innerText = q.text;
+        
+        // Reset Group choices
+        if (appState.mode === 'group') {
+            appState.groupUsers.forEach(u => u.currentChoice = null);
+        }
+
+        const optsDiv = document.getElementById('opt-container');
+        optsDiv.innerHTML = '';
+        
+        q.opts.forEach((opt, idx) => {
+            const btn = document.createElement('div');
+            btn.className = 'option-btn';
+            btn.onclick = () => handleOptionClick(idx);
+            
+            btn.innerHTML = `
+                <div class="option-content">
+                    <span>${opt}</span>
+                    <span style="font-weight:bold; color:#ccc; font-size:1.4rem;">${String.fromCharCode(65+idx)}</span>
+                </div>
+                <div id="badge-${idx}" class="assigned-badge"></div>
+            `;
+            optsDiv.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function handleOptionClick(idx) {
+        if (appState.mode === 'single') {
+            clearInterval(timerInterval);
+            checkAnswerSingle(idx);
+        } else {
+            openStudentSelector(idx);
+        }
+    }
+
+    // --- Timer ---
+    function startTimer() {
+        clearInterval(timerInterval);
+        timeLeft = TIME_LIMIT;
+        updateTimerUI();
+        
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                if (appState.mode === 'single') {
+                    checkAnswerSingle(-1); // Timeout
+                } else {
+                    finalizeGroupQuestion(); // Auto submit
+                }
+            }
+        }, 1000);
+    }
+
+    function updateTimerUI() {
+        document.getElementById('time-val').innerText = timeLeft;
+        const pct = (timeLeft / TIME_LIMIT) * 100;
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = pct + '%';
+        
+        if (timeLeft <= 10) bar.style.background = 'var(--error)';
+        else if (timeLeft <= 20) bar.style.background = 'var(--warning)';
+        else bar.style.background = 'var(--success)';
+    }
+
+    // --- Group Mode Logic ---
+    let currentEditingOption = null;
+
+    function openStudentSelector(optionIdx) {
+        if (timeLeft <= 0) return;
+        currentEditingOption = optionIdx;
+        const q = questions[appState.qIndex];
+        
+        // Populate Modal
+        document.getElementById('selected-opt-text').innerText = `الخيار (${String.fromCharCode(65+optionIdx)}): ${q.opts[optionIdx]}`;
+        const listDiv = document.getElementById('student-list');
+        listDiv.innerHTML = '';
+
+        appState.groupUsers.forEach((user) => {
+            const div = document.createElement('div');
+            const isSelected = user.currentChoice === optionIdx;
+            
+            div.className = `student-checkbox ${isSelected ? 'checked' : ''}`;
+            div.innerText = user.name;
+            div.onclick = () => {
+                if (user.currentChoice === optionIdx) {
+                    user.currentChoice = null;
+                    div.classList.remove('checked');
+                } else {
+                    user.currentChoice = optionIdx;
+                    div.classList.add('checked');
+                }
+            };
+            listDiv.appendChild(div);
+        });
+
+        document.getElementById('student-modal').style.display = 'flex';
+    }
+
+    function confirmStudentSelection() {
+        document.getElementById('student-modal').style.display = 'none';
+        updateGroupBadges();
+    }
+
+    function updateGroupBadges() {
+        for (let i = 0; i < 4; i++) {
+            const badge = document.getElementById(`badge-${i}`);
+            if(badge) { badge.style.display = 'none'; badge.innerText = ''; }
+        }
+
+        const counts = {}; 
+        appState.groupUsers.forEach(u => {
+            if (u.currentChoice !== null) {
+                if (!counts[u.currentChoice]) counts[u.currentChoice] = [];
+                counts[u.currentChoice].push(u.name);
+            }
+        });
+
+        Object.keys(counts).forEach(optIdx => {
+            const badge = document.getElementById(`badge-${optIdx}`);
+            if (badge) {
+                badge.style.display = 'block';
+                const names = counts[optIdx].join('، ');
+                badge.innerText = `${names}`;
+            }
+        });
+    }
+
+    function finalizeGroupQuestion() {
+        clearInterval(timerInterval);
+        const q = questions[appState.qIndex];
+        const correctIdx = q.correct;
+        
+        let correctNames = [];
+        let wrongNames = [];
+
+        appState.groupUsers.forEach(u => {
+            if (u.currentChoice === correctIdx) {
+                u.score++;
+                correctNames.push(u.name);
+            } else {
+                wrongNames.push(u.name);
+            }
+        });
+
+        const modal = document.getElementById('feedback-modal');
+        const icon = document.getElementById('fb-icon');
+        const title = document.getElementById('fb-title');
+        const details = document.getElementById('fb-details');
+
+        modal.style.display = 'flex';
+        icon.innerText = "📊";
+        title.innerText = "نتيجة السؤال";
+        
+        details.innerHTML = `
+            <div style="background:#e8f8f5; padding:10px; border-radius:10px; margin-bottom:10px; color:var(--success); font-weight:bold;">
+                الإجابة الصحيحة: ${q.opts[correctIdx]}
+            </div>
+            <div>
+                <span style="color:var(--success)">✅ الأبطال (${correctNames.length}):</span> ${correctNames.join(', ') || 'لا يوجد'}
+            </div>
+            <div style="margin-top:5px;">
+                <span style="color:var(--error)">❌ حاولوا مرة ثانية:</span> ${wrongNames.join(', ') || 'لا يوجد'}
+            </div>
+        `;
+        
+        if (correctNames.length > 0) fireConfetti();
+    }
+
+    // --- Single Mode Logic ---
+    function checkAnswerSingle(idx) {
+        const q = questions[appState.qIndex];
+        const isCorrect = idx === q.correct;
+        const isTimeout = idx === -1;
+
+        const modal = document.getElementById('feedback-modal');
+        const icon = document.getElementById('fb-icon');
+        const title = document.getElementById('fb-title');
+        const details = document.getElementById('fb-details');
+        
+        modal.style.display = 'flex';
+
+        if (isCorrect) {
+            appState.singleUser.score++;
+            icon.innerText = "🎉";
+            title.innerText = "إجابة صحيحة!";
+            title.style.color = "var(--success)";
+            details.innerText = "كفو عليك يا وحش، استمر!";
+            fireConfetti();
+        } else {
+            appState.wrongAnswers.push({
+                q: q.text,
+                user: isTimeout ? "انتهى الوقت" : q.opts[idx],
+                correct: q.opts[q.correct]
+            });
+
+            icon.innerText = isTimeout ? "⏰" : "⚠️";
+            title.innerText = isTimeout ? "راح الوقت!" : "إجابة خاطئة";
+            title.style.color = "var(--error)";
+            details.innerHTML = `
+                الإجابة الصحيحة كانت:<br>
+                <b style="color:var(--success); font-size:1.2rem;">${q.opts[q.correct]}</b>
+            `;
+            
+            modal.querySelector('.modal-content').classList.add('shake');
+            setTimeout(()=> modal.querySelector('.modal-content').classList.remove('shake'), 500);
+        }
+    }
+
+    function nextQuestion() {
+        document.getElementById('feedback-modal').style.display = 'none';
+        appState.qIndex++;
+        loadQuestion();
+    }
+
+    // --- Result Screen ---
+    function showResults() {
+        document.getElementById('quiz-screen').classList.remove('active');
+        document.getElementById('result-screen').classList.add('active');
+
+        if (appState.mode === 'single') {
+            document.getElementById('single-result-area').style.display = 'block';
+            document.getElementById('group-result-area').style.display = 'none';
+            
+            const pct = Math.round((appState.singleUser.score / questions.length) * 100);
+            document.getElementById('final-score').innerText = `%${pct}`;
+            
+            const genderTitle = appState.singleUser.gender === 'male' ? "يا شب" : "يا صبية";
+            let msg = pct >= 80 ? `أبدعت ${genderTitle}!` : `يعطيك العافية ${genderTitle}`;
+            document.getElementById('end-greeting').innerText = `${msg} ${appState.singleUser.name}`;
+
+            const revDiv = document.getElementById('single-review');
+            if (appState.wrongAnswers.length > 0) {
+                revDiv.innerHTML = '<h3 style="color:var(--error); margin-bottom:10px;">أخطاء لازم نراجعها:</h3>';
+                appState.wrongAnswers.forEach(w => {
+                    revDiv.innerHTML += `
+                        <div style="background:#fff0f0; padding:10px; margin-bottom:10px; border-radius:8px; border-right:4px solid var(--error);">
+                            <div style="font-size:0.9rem;">${w.q}</div>
+                            <div style="color:var(--error)">❌ ${w.user}</div>
+                            <div style="color:var(--success); font-weight:bold;">✅ ${w.correct}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                revDiv.innerHTML = '<h3 style="color:var(--success);">علامة كاملة! ما شاء الله.</h3>';
+            }
+
+        } else {
+            // Group Result
+            document.getElementById('single-result-area').style.display = 'none';
+            document.getElementById('group-result-area').style.display = 'block';
+            document.getElementById('end-greeting').innerText = "نتائج مجموعة X Academy";
+
+            const sorted = [...appState.groupUsers].sort((a,b) => b.score - a.score);
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = '';
+            
+            sorted.forEach((u, i) => {
+                const tr = document.createElement('tr');
+                if (i === 0) tr.classList.add('rank-1');
+                tr.innerHTML = `
+                    <td>${i+1}</td>
+                    <td>${u.name} ${i===0 ? '👑' : ''}</td>
+                    <td>${u.score} / ${questions.length}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            fireConfetti();
+        }
+    }
+
+    // --- Confetti ---
+    function fireConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const particles = [];
+        for(let i=0; i<100; i++) particles.push({
+            x: Math.random()*canvas.width, y: Math.random()*canvas.height - canvas.height,
+            color: `hsl(${Math.random()*360}, 100%, 50%)`, size: Math.random()*10+5,
+            speed: Math.random()*5+2, angle: Math.random()*6
+        });
+        let d = 0;
+        function anim() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach(p => {
+                p.y += p.speed; p.x += Math.sin(p.angle); p.angle+=0.1;
+                ctx.fillStyle = p.color; ctx.fillRect(p.x,p.y,p.size,p.size);
+            });
+            if(d++ < 200) requestAnimationFrame(anim);
+            else ctx.clearRect(0,0,canvas.width,canvas.height);
+        }
+        anim();
+    }
+</script>
+
+</body>
+</html>
