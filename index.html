@@ -4,649 +4,734 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>اكس اكاديمي - تحدي VLOOKUP</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #099999;
             --primary-dark: #067a7a;
-            --bg: #f0f4f4;
+            --primary-light: #e6f7f7;
+            --accent: #FFD700; /* الذهبي */
+            --bg: #f8fcfc;
+            --text-main: #2c3e50;
+            --text-light: #6c757d;
             --white: #ffffff;
-            --text: #333;
-            --error: #e74c3c;
-            --warning: #f39c12;
             --success: #27ae60;
-            --brand-accent: #FFD700; /* لون ذهبي لكلمة اكس */
+            --error: #e74c3c;
+            --card-shadow: 0 12px 24px rgba(9, 153, 153, 0.08);
+            --hover-shadow: 0 15px 30px rgba(9, 153, 153, 0.15);
         }
 
-        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; transition: all 0.3s ease; }
-        
+        * { box-sizing: border-box; font-family: 'Tajawal', sans-serif; transition: all 0.2s ease-in-out; }
+
         body {
-            margin: 0; padding: 0; background: var(--bg); color: var(--text);
-            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
-            user-select: none; overflow-x: hidden;
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main);
+            min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden;
         }
 
-        /* --- New Header Styling --- */
+        /* --- Header Design --- */
         .main-header {
-            width: 100%;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 15px 0;
-            box-shadow: 0 4px 15px rgba(9, 153, 153, 0.3);
-            margin-bottom: 30px;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(9, 153, 153, 0.2);
+            position: sticky; top: 0; z-index: 100;
         }
 
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 900px; /* نفس عرض المحتوى الرئيسي */
-            margin: 0 auto;
-            padding: 0 20px;
+        .header-container {
+            max-width: 1000px; margin: 0 auto; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .brand-name {
-            color: white;
-            font-size: 2.2rem;
-            font-weight: 900;
-            margin: 0;
-        }
-
-        .brand-x {
-            color: var(--brand-accent); /* تلوين كلمة اكس */
-        }
-
-       .header-logo {
-            height: auto;  /* كبرناها من 50 لـ 80 */
-            width: auto;   /* عشان يحافظ على التناسب */
-            max-width: 150px; /* عشان ما يغطي عالكلام بالموبايل */
-            object-fit: contain; /* عشان تضل الصورة كاملة جوا المساحة */
-        }
-        /* ------------------------- */
-
-        /* Canvas & Container */
-        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
         
-        .container {
-            width: 100%; max-width: 900px; background: var(--white);
-            border-radius: 20px; box-shadow: 0 10px 40px rgba(9, 153, 153, 0.15);
-            padding: 40px; margin: 0 20px 40px 20px; position: relative;
-            min-height: 600px; display: flex; flex-direction: column; z-index: 10;
+        .brand-text {
+            color: var(--white); font-weight: 900; font-size: 1.8rem; margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .brand-x { color: var(--accent); }
+
+        .header-logo {
+            height: 50px; width: auto; object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            background: rgba(255,255,255,0.9); border-radius: 8px; padding: 5px;
+        }
+
+        /* --- Layout & Container --- */
+        .app-container {
+            flex: 1; width: 100%; max-width: 900px; margin: 30px auto;
+            padding: 0 20px; display: flex; flex-direction: column;
+        }
+
+        .card {
+            background: var(--white); border-radius: 24px;
+            box-shadow: var(--card-shadow); padding: 40px;
+            width: 100%; position: relative; overflow: hidden;
+        }
+
+        /* --- Screens --- */
+        .screen { display: none; opacity: 0; animation: fadeIn 0.4s forwards; }
+        .screen.active { display: block; opacity: 1; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Login Screen --- */
+        .login-title { text-align: center; color: var(--primary); font-weight: 800; margin-bottom: 2rem; font-size: 2rem; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--text-main); }
+        
+        input, select, textarea {
+            width: 100%; padding: 15px; border: 2px solid #e9ecef; border-radius: 12px;
+            font-size: 1.1rem; outline: none; background: #fafafa;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 4px rgba(9, 153, 153, 0.1); }
+
+        .btn-main {
+            background: var(--primary); color: white; border: none; padding: 16px;
+            font-size: 1.2rem; font-weight: 800; border-radius: 12px; cursor: pointer;
+            width: 100%; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-main:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 15px rgba(9, 153, 153, 0.2); }
+        .btn-main:active { transform: translateY(0); }
+
+        /* --- Quiz Screen --- */
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .user-tag { background: var(--primary-light); color: var(--primary-dark); padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 0.9rem; }
+        .q-progress { font-weight: 900; color: var(--text-light); }
 
         /* Timer */
-        .timer-wrapper { position: relative; margin: 30px 0 20px 0; }
-        .timer-bar-bg { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
-        .timer-bar { height: 100%; background: var(--success); width: 100%; transition: width 1s linear; }
-        .timer-display { position: absolute; top: -35px; left: 0; font-weight: bold; color: #777; font-size: 1.1rem; }
+        .timer-container { position: relative; margin-bottom: 30px; }
+        .timer-track { height: 10px; background: #e9ecef; border-radius: 10px; overflow: hidden; }
+        .timer-fill { height: 100%; background: var(--success); width: 100%; transition: width 1s linear, background-color 0.3s; }
+        .timer-text { position: absolute; top: -25px; left: 0; font-weight: 700; color: var(--text-light); font-size: 0.9rem; }
 
-        /* Questions */
-        .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        .question-text { font-size: 1.8rem; margin-bottom: 30px; color: #2c3e50; line-height: 1.4; font-weight: 800; }
-        
+        /* Question */
+        .question-text { font-size: 1.6rem; font-weight: 800; line-height: 1.5; margin-bottom: 30px; color: var(--text-main); }
+
+        /* Options Grid */
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        @media(min-width: 600px) { .options-grid { grid-template-columns: 1fr 1fr; } }
+        @media(min-width: 768px) { .options-grid { grid-template-columns: 1fr 1fr; } }
 
-        .option-btn {
-            background: #f8f9fa; border: 2px solid #e9ecef; padding: 20px; border-radius: 12px;
-            text-align: right; cursor: pointer; font-size: 1.2rem; position: relative;
-            display: flex; flex-direction: column; justify-content: center; min-height: 90px;
+        .option-card {
+            background: var(--white); border: 2px solid #e9ecef; border-radius: 16px;
+            padding: 20px; cursor: pointer; position: relative;
+            display: flex; align-items: center; min-height: 80px;
         }
-        .option-btn:hover { border-color: var(--primary); background: #e6f7f7; transform: translateY(-3px); }
-        .option-content { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+        .option-card:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-3px); }
         
-        /* Group Badges on Options */
-        .assigned-badge {
-            margin-top: 10px; font-size: 0.9rem; background: rgba(9, 153, 153, 0.1); 
-            color: var(--primary); padding: 5px 10px; border-radius: 8px; display: none;
-            width: 100%; text-align: center; font-weight: bold;
+        .opt-letter {
+            background: #e9ecef; color: var(--text-light); width: 40px; height: 40px;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-weight: 900; margin-left: 15px; flex-shrink: 0; transition: all 0.2s;
         }
+        .option-card:hover .opt-letter { background: var(--primary); color: white; }
+        
+        .opt-text { font-size: 1.1rem; font-weight: 600; line-height: 1.3; }
 
-        /* Inputs */
-        input, select, textarea { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 10px; font-size: 1.1rem; margin-top: 5px; margin-bottom: 20px; }
-        textarea { height: 100px; resize: vertical; }
-        
-        .btn-primary {
-            background: var(--primary); color: white; border: none; padding: 15px; font-size: 1.2rem;
-            border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        /* Group Badges */
+        .group-badge-container {
+            width: 100%; margin-top: 8px; display: none; /* Hidden by default */
         }
-        .btn-primary:hover { background: var(--primary-dark); }
-        
-        .btn-check-group {
-            background: #333; color: white; margin-top: 20px; display: none;
+        .group-badge {
+            background: rgba(9, 153, 153, 0.1); color: var(--primary-dark);
+            font-size: 0.85rem; padding: 4px 8px; border-radius: 6px;
+            display: inline-block; font-weight: 700; margin-top: 5px;
         }
 
-        /* Modals */
+        /* --- Result Screen --- */
+        .result-score { font-size: 5rem; font-weight: 900; color: var(--primary); margin: 10px 0; letter-spacing: -2px; }
+        .result-msg { font-size: 1.5rem; margin-bottom: 30px; font-weight: 700; }
+        
+        /* Leaderboard */
+        .leaderboard { width: 100%; border-collapse: separate; border-spacing: 0 10px; margin-top: 20px; }
+        .leaderboard th { color: var(--text-light); font-size: 0.9rem; padding: 10px; text-align: center; }
+        .leaderboard td { background: #f8f9fa; padding: 15px; text-align: center; font-weight: 700; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+        .leaderboard tr td:first-child { border-radius: 0 10px 10px 0; border-right: 1px solid #eee; }
+        .leaderboard tr td:last-child { border-radius: 10px 0 0 10px; border-left: 1px solid #eee; }
+        .rank-1 td { background: #FFF9C4; color: #d35400; border-color: #ffe082; }
+
+        /* --- Modals --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            display: none; justify-content: center; align-items: center; z-index: 100;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            z-index: 1000; display: none; align-items: center; justify-content: center;
         }
-        .modal-content { 
-            background: white; width: 90%; max-width: 500px; padding: 30px; 
-            border-radius: 20px; text-align: center; animation: popIn 0.3s ease;
-            max-height: 90vh; overflow-y: auto;
+        .modal-box {
+            background: white; width: 90%; max-width: 450px; border-radius: 24px;
+            padding: 30px; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-
-        /* Student Selector inside Modal */
-        .student-list-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; text-align: right;
-        }
-        .student-checkbox {
-            padding: 10px; background: #f9f9f9; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; border: 1px solid #ddd;
-        }
-        .student-checkbox.checked { background: #e6f7f7; border-color: var(--primary); font-weight: bold; }
-
-        /* Leaderboard */
-        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .leaderboard-table th { background: var(--primary); color: white; padding: 10px; }
-        .leaderboard-table td { border-bottom: 1px solid #eee; padding: 10px; font-size: 1.1rem; }
-        .rank-1 { background-color: #ffd70033; font-weight: bold; }
-        
-        /* Screens */
-        .screen { display: none; height: 100%; flex-direction: column; justify-content: center; }
-        .screen.active { display: flex; }
-
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .shake { animation: shake 0.5s; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } 100% { transform: translateX(0); } }
 
+        .fb-icon { font-size: 4rem; display: block; margin-bottom: 10px; }
+        .fb-title { font-size: 1.8rem; font-weight: 900; margin: 0 0 10px 0; }
+        .fb-desc { color: var(--text-light); font-size: 1.1rem; margin-bottom: 25px; line-height: 1.5; }
+        
+        /* Student Selector */
+        .student-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+        .st-check {
+            background: #f8f9fa; border: 2px solid #e9ecef; padding: 10px; border-radius: 10px;
+            cursor: pointer; font-weight: 600; transition: 0.2s;
+        }
+        .st-check.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+
+        /* Canvas */
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2000; }
+        
+        /* Mobile Tweaks */
+        @media(max-width: 600px) {
+            .card { padding: 25px; }
+            .question-text { font-size: 1.3rem; }
+            .brand-text { font-size: 1.4rem; }
+            .header-logo { height: 40px; }
+        }
     </style>
 </head>
 <body>
 
-<canvas id="confetti-canvas"></canvas>
+<canvas id="confetti"></canvas>
 
 <header class="main-header">
-    <div class="header-content">
-        <h1 class="brand-name">
-            <span class="brand-x">اكس</span> اكاديمي
-        </h1>
-        <img src="https://raw.githubusercontent.com/BaselGhanem/Basics1/refs/heads/main/X%20Academy%20black.png" alt="X Academy Logo" class="header-logo">
+    <div class="header-container">
+        <div class="logo-area">
+            <h1 class="brand-text"><span class="brand-x">اكس</span> اكاديمي</h1>
+        </div>
+        <img src="https://raw.githubusercontent.com/BaselGhanem/Basics1/refs/heads/main/X%20Academy%20black.png" alt="X Academy" class="header-logo">
     </div>
 </header>
 
-<div class="container">
+<div class="app-container">
     
-    <div id="login-screen" class="screen active">
-        <h2 style="color: var(--primary); text-align: center; margin-bottom: 30px;">تحدي VLOOKUP</h2>
-        
-        <label>صفة المشارك:</label>
-        <select id="user-type" onchange="toggleGroupInput()">
-            <option value="male">شب </option>
-            <option value="female">صبية</option>
-            <option value="group">مجموعة (تحدي جماعي)</option>
-        </select>
-
-        <div id="single-input-area">
-            <label>الاسم:</label>
-            <input type="text" id="username" placeholder="اكتب اسمك...">
-        </div>
-
-        <div id="group-input-area" style="display: none;">
-            <label>أسماء الطلاب في المجموعة:</label>
-            <textarea id="group-names" placeholder="اكتب الأسماء هنا.. (مثال: أحمد، خالد، سارة) كل اسم بسطر أو بينهم فاصلة"></textarea>
-            <small style="color: #666;">سيتم احتساب النقاط لكل شخص بناءً على إجاباته.</small>
-        </div>
-
-        <button class="btn-primary" onclick="startQuiz()">يلا نبدأ التحدي!</button>
-    </div>
-
-    <div id="quiz-screen" class="screen">
-        <div class="q-header">
-            <div id="user-display" style="font-weight: bold; color: var(--primary); font-size: 1.2rem;"></div>
-            <div id="q-counter" style="background: #eee; padding: 8px 20px; border-radius: 20px; font-size: 1rem; font-weight: bold;"></div>
-        </div>
-
-        <div class="timer-wrapper">
-            <div class="timer-display"><span id="time-val">30</span> ثانية</div>
-            <div class="timer-bar-bg">
-                <div class="timer-bar" id="timer-bar"></div>
+    <div id="screen-login" class="screen active">
+        <div class="card">
+            <h2 class="login-title">تحدي VLOOKUP</h2>
+            
+            <div class="form-group">
+                <label class="form-label">نوع المشاركة</label>
+                <select id="user-type" onchange="toggleInputs()">
+                    <option value="male">شب (فردي)</option>
+                    <option value="female">صبية (فردي)</option>
+                    <option value="group">مجموعة (تحدي جماعي)</option>
+                </select>
             </div>
-        </div>
 
-        <h2 class="question-text" id="q-text"></h2>
-        <div class="options-grid" id="opt-container"></div>
-        
-        <button id="btn-submit-group" class="btn-primary btn-check-group" onclick="finalizeGroupQuestion()">اعتماد الإجابات و إنهاء السؤال</button>
+            <div id="input-single" class="form-group">
+                <label class="form-label">الاسم الكريم</label>
+                <input type="text" id="username" placeholder="اكتب اسمك هنا...">
+            </div>
+
+            <div id="input-group" class="form-group" style="display: none;">
+                <label class="form-label">أسماء أعضاء الفريق</label>
+                <textarea id="group-names" rows="3" placeholder="أحمد، سارة، خالد... (كل اسم بسطر أو بينهم فاصلة)"></textarea>
+                <small style="color: var(--text-light); margin-top: 5px; display: block;">سيتم تتبع نقاط كل شخص بشكل منفصل.</small>
+            </div>
+
+            <button class="btn-main" onclick="startApp()">
+                <span>ابدأ التحدي</span>
+                <span>🚀</span>
+            </button>
+        </div>
     </div>
 
-    <div id="result-screen" class="screen" style="text-align: center;">
-        <h2 id="end-greeting" style="font-size: 2rem;"></h2>
-        
-        <div id="single-result-area">
-            <div style="font-size: 4rem; font-weight: 900; color: var(--primary); margin: 20px 0;" id="final-score"></div>
-            <div id="single-review" style="text-align: right; max-height: 250px; overflow-y: auto;"></div>
-        </div>
+    <div id="screen-quiz" class="screen">
+        <div class="card">
+            <div class="quiz-header">
+                <div id="display-name" class="user-tag"></div>
+                <div id="q-counter" class="q-progress">1 / 20</div>
+            </div>
 
-        <div id="group-result-area" style="display: none;">
-            <h3 style="color: var(--primary);">🏆 لوحة المتصدرين (Leaderboard) 🏆</h3>
-            <table class="leaderboard-table">
-                <thead><tr><th>الترتيب</th><th>الاسم</th><th>النقاط</th></tr></thead>
-                <tbody id="leaderboard-body"></tbody>
-            </table>
-        </div>
+            <div class="timer-container">
+                <div class="timer-text"><span id="timer-num">30</span> ثانية</div>
+                <div class="timer-track">
+                    <div id="timer-bar" class="timer-fill"></div>
+                </div>
+            </div>
 
-        <button class="btn-primary" onclick="location.reload()" style="margin-top:20px;">تحدي جديد</button>
+            <div class="question-text" id="q-text"></div>
+            
+            <div class="options-grid" id="options-container">
+                </div>
+
+            <button id="btn-group-submit" class="btn-main" style="margin-top: 25px; display: none; background: #333;" onclick="submitGroupAnswer()">
+                اعتماد إجابات الفريق
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-result" class="screen">
+        <div class="card" style="text-align: center;">
+            <div id="result-greeting" class="result-msg"></div>
+            
+            <div id="res-single">
+                <div id="final-score" class="result-score">0%</div>
+                <div id="review-list" style="text-align: right; margin-top: 20px;"></div>
+            </div>
+
+            <div id="res-group" style="display: none;">
+                <h3 style="color: var(--primary);">🏆 لوحة الصدارة</h3>
+                <table class="leaderboard">
+                    <thead><tr><th>#</th><th>الاسم</th><th>النقاط</th></tr></thead>
+                    <tbody id="lb-body"></tbody>
+                </table>
+            </div>
+
+            <button class="btn-main" onclick="location.reload()" style="margin-top: 30px;">
+                تحدي جديد 🔄
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<div id="modal-student" class="modal-overlay">
+    <div class="modal-box">
+        <h3>مين اختار هاد الجواب؟</h3>
+        <p id="modal-opt-preview" style="color: var(--primary); font-weight: bold; margin-bottom: 15px;"></p>
+        <div id="student-list" class="student-grid"></div>
+        <button class="btn-main" onclick="closeStudentModal()">تم الاختيار</button>
     </div>
 </div>
 
-<div class="modal-overlay" id="student-modal">
-    <div class="modal-content">
-        <h3>مين جاوب هاد الجواب؟</h3>
-        <p id="selected-opt-text" style="color: var(--primary); font-weight: bold; margin-bottom: 15px;"></p>
-        <div id="student-list" class="student-list-grid"></div>
-        <button class="btn-primary" onclick="confirmStudentSelection()">تأكيد الاختيار</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="feedback-modal">
-    <div class="modal-content">
-        <span style="font-size: 3rem;" id="fb-icon"></span>
-        <h2 id="fb-title"></h2>
-        <div id="fb-details" style="margin: 15px 0; color: #555;"></div>
-        <button class="btn-primary" onclick="nextQuestion()" id="fb-btn">السؤال التالي</button>
+<div id="modal-feedback" class="modal-overlay">
+    <div class="modal-box">
+        <span id="fb-icon" class="fb-icon"></span>
+        <h2 id="fb-title" class="fb-title"></h2>
+        <div id="fb-desc" class="fb-desc"></div>
+        <button class="btn-main" onclick="nextQ()">السؤال التالي</button>
     </div>
 </div>
 
 <script>
-    // --- Data ---
-    const questions = [
-        { text: "شو الوظيفة الرئيسية لدالة VLOOKUP؟", opts: ["جمع أرقام", "بحث عمودي عن قيمة", "بحث أفقي", "ترتيب أبجدي"], correct: 1 },
-        { text: "أول جزء (Argument) بنكتبه داخل دالة VLOOKUP هو:", opts: ["الجدول (Table_array)", "قيمة البحث (Lookup_value)", "رقم العمود", "نوع المطابقة"], correct: 1 },
-        { text: "عشان VLOOKUP تشتغل صح، قيمة البحث لازم تكون موجودة وين؟", opts: ["أي عمود", "العمود الأول (يسار/يمين)", "آخر عمود", "الصف الأول"], correct: 1 },
-        { text: "للبحث المطابق تماماً (Exact Match)، بنستخدم:", opts: ["TRUE", "1", "FALSE", "Nothing"], correct: 2 },
-        { text: "الرقم Col_index_num بيمثل شو؟", opts: ["رقم الصف", "رقم العمود اللي بدنا نتيجته", "عدد الأعمدة", "رقم العملية"], correct: 1 },
-        { text: "رمز الـ 'V' باسم الدالة يعني:", opts: ["Value", "Vertical", "Very Fast", "Visual"], correct: 1 },
-        { text: "اذا نسينا آخر جزء (Range_lookup)، الاكسل بعتبره:", opts: ["FALSE (مطابق)", "TRUE (تقريبي)", "Error", "0"], correct: 1 },
-        { text: "نتيجة #N/A بتعني غالباً:", opts: ["خطأ بالمعادلة", "القيمة غير موجودة", "العمود فاضي", "تعليق بالنظام"], correct: 1 },
-        { text: "للبحث عن تقديرات ضمن شرائح (Ranges)، بنستخدم:", opts: ["FALSE", "TRUE", "IFERROR", "SUM"], correct: 1 },
-        { text: "بحث عن رقم مخزن كـ Text داخل عمود Number يسبب:", opts: ["بشتغل عادي", "#N/A", "تصحيح تلقائي", "#VALUE!"], correct: 1 },
-        { text: "ليش بنستخدم $ مع Table_array؟", opts: ["تجميل", "تثبيت النطاق عند السحب", "تلوين", "اجباري للدالة"], correct: 1 },
-        { text: "هل VLOOKUP بتجيب قيم من يسار عمود البحث (بالانجليزي)؟", opts: ["نعم", "لا، بس لليمين", "نعم مع TRUE", "حسب النسخة"], correct: 1 },
-        { text: "إضافة عمود بمنتصف الجدول بـ VLOOKUP:", opts: ["تحديث تلقائي", "ممكن يعطي نتيجة غلط", "حذف المعادلة", "ممنوع"], correct: 1 },
-        { text: "هل VLOOKUP حساسة للأحرف (Case Sensitive)؟", opts: ["نعم", "لا", "حسب الويندوز", "مع TRUE فقط"], correct: 1 },
-        { text: "للبحث عن اسم يبدأ بـ 'Moh' بنستخدم:", opts: ["SEARCH", "Wildcard (*)", "مستحيل", "Moh فقط"], correct: 1 },
-        { text: "لإخفاء خطأ #N/A واستبداله بـ فراغ:", opts: ["IFNA / IFERROR", "Format", "Delete", "Zero"], correct: 0 },
-        { text: "للبحث بشرطين (الاسم + القسم) بـ VLOOKUP:", opts: ["مستحيل", "عمود مساعد (Helper Col)", "2 VLOOKUP", "AND"], correct: 1 },
-        { text: "شرط استخدام TRUE (بحث تقريبي):", opts: ["ترتيب تصاعدي للعمود الأول", "ترتيب تنازلي", "أرقام فقط", "لا شرط"], correct: 0 },
-        { text: "اختيار جدول البحث بناءً على شرط (Dynamic Table):", opts: ["Double VLOOKUP", "IF inside Table_array", "Merge Tables", "Validation"], correct: 1 },
-        { text: "نتيجة خاطئة (مش Error) مع Exact Match، السبب:", opts: ["الفرز", "عدم تثبيت الجدول ($)", "فراغات", "حجم الخط"], correct: 1 }
+    /* --- Data --- */
+    const rawQuestions = [
+        { text: "شو الوظيفة الرئيسية لدالة VLOOKUP؟", opts: ["جمع أرقام", "بحث عمودي عن قيمة", "بحث أفقي", "ترتيب أبجدي"], correctIdx: 1 },
+        { text: "أول جزء (Argument) بنكتبه داخل دالة VLOOKUP هو:", opts: ["الجدول (Table_array)", "قيمة البحث (Lookup_value)", "رقم العمود", "نوع المطابقة"], correctIdx: 1 },
+        { text: "عشان VLOOKUP تشتغل صح، قيمة البحث لازم تكون موجودة وين؟", opts: ["أي عمود", "العمود الأول (يسار/يمين)", "آخر عمود", "الصف الأول"], correctIdx: 1 },
+        { text: "للبحث المطابق تماماً (Exact Match)، بنستخدم:", opts: ["TRUE", "1", "FALSE", "Nothing"], correctIdx: 2 },
+        { text: "الرقم Col_index_num بيمثل شو؟", opts: ["رقم الصف", "رقم العمود اللي بدنا نتيجته", "عدد الأعمدة", "رقم العملية"], correctIdx: 1 },
+        { text: "رمز الـ 'V' باسم الدالة يعني:", opts: ["Value", "Vertical", "Very Fast", "Visual"], correctIdx: 1 },
+        { text: "اذا نسينا آخر جزء (Range_lookup)، الاكسل بعتبره:", opts: ["FALSE (مطابق)", "TRUE (تقريبي)", "Error", "0"], correctIdx: 1 },
+        { text: "نتيجة #N/A بتعني غالباً:", opts: ["خطأ بالمعادلة", "القيمة غير موجودة", "العمود فاضي", "تعليق بالنظام"], correctIdx: 1 },
+        { text: "للبحث عن تقديرات ضمن شرائح (Ranges)، بنستخدم:", opts: ["FALSE", "TRUE", "IFERROR", "SUM"], correctIdx: 1 },
+        { text: "بحث عن رقم مخزن كـ Text داخل عمود Number يسبب:", opts: ["بشتغل عادي", "#N/A", "تصحيح تلقائي", "#VALUE!"], correctIdx: 1 },
+        { text: "ليش بنستخدم $ مع Table_array؟", opts: ["تجميل", "تثبيت النطاق عند السحب", "تلوين", "اجباري للدالة"], correctIdx: 1 },
+        { text: "هل VLOOKUP بتجيب قيم من يسار عمود البحث (بالانجليزي)؟", opts: ["نعم", "لا، بس لليمين", "نعم مع TRUE", "حسب النسخة"], correctIdx: 1 },
+        { text: "إضافة عمود بمنتصف الجدول بـ VLOOKUP:", opts: ["تحديث تلقائي", "ممكن يعطي نتيجة غلط", "حذف المعادلة", "ممنوع"], correctIdx: 1 },
+        { text: "هل VLOOKUP حساسة للأحرف (Case Sensitive)؟", opts: ["نعم", "لا", "حسب الويندوز", "مع TRUE فقط"], correctIdx: 1 },
+        { text: "للبحث عن اسم يبدأ بـ 'Moh' بنستخدم:", opts: ["SEARCH", "Wildcard (*)", "مستحيل", "Moh فقط"], correctIdx: 1 },
+        { text: "لإخفاء خطأ #N/A واستبداله بـ فراغ:", opts: ["IFNA / IFERROR", "Format", "Delete", "Zero"], correctIdx: 0 },
+        { text: "للبحث بشرطين (الاسم + القسم) بـ VLOOKUP:", opts: ["مستحيل", "عمود مساعد (Helper Col)", "2 VLOOKUP", "AND"], correctIdx: 1 },
+        { text: "شرط استخدام TRUE (بحث تقريبي):", opts: ["ترتيب تصاعدي للعمود الأول", "ترتيب تنازلي", "أرقام فقط", "لا شرط"], correctIdx: 0 },
+        { text: "اختيار جدول البحث بناءً على شرط (Dynamic Table):", opts: ["Double VLOOKUP", "IF inside Table_array", "Merge Tables", "Validation"], correctIdx: 1 },
+        { text: "نتيجة خاطئة (مش Error) مع Exact Match، السبب:", opts: ["الفرز", "عدم تثبيت الجدول ($)", "فراغات", "حجم الخط"], correctIdx: 1 }
     ];
 
-    // --- State Variables ---
-    let appState = {
-        mode: 'single', // 'single' or 'group'
-        singleUser: { name: '', gender: 'male', score: 0 },
-        groupUsers: [], // Array of { name, score, currentChoice }
-        qIndex: 0,
+    /* --- Logic State --- */
+    let state = {
+        mode: 'single', // single | group
+        user: { name: '', gender: 'male', score: 0 },
+        group: [],
+        currentQIndex: 0,
+        currentShuffledOpts: [], // Holds {text, originalIdx}
         wrongAnswers: []
     };
 
-    let timerInterval;
+    let timer = null;
     let timeLeft = 30;
     const TIME_LIMIT = 30;
-    
-    // UI Helpers
-    function toggleGroupInput() {
+
+    /* --- Setup --- */
+    function toggleInputs() {
         const type = document.getElementById('user-type').value;
+        const singleDiv = document.getElementById('input-single');
+        const groupDiv = document.getElementById('input-group');
+        
         if (type === 'group') {
-            document.getElementById('single-input-area').style.display = 'none';
-            document.getElementById('group-input-area').style.display = 'block';
+            singleDiv.style.display = 'none';
+            groupDiv.style.display = 'block';
         } else {
-            document.getElementById('single-input-area').style.display = 'block';
-            document.getElementById('group-input-area').style.display = 'none';
+            singleDiv.style.display = 'block';
+            groupDiv.style.display = 'none';
         }
     }
 
-    // --- Start Logic ---
-    function startQuiz() {
-        appState.qIndex = 0;
-        appState.wrongAnswers = [];
-        appState.groupUsers = [];
-        const type = document.getElementById('user-type').value;
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
-        if (type === 'group') {
-            appState.mode = 'group';
-            const rawNames = document.getElementById('group-names').value;
-            if (!rawNames.trim()) { alert("يرجى إدخال أسماء الطلاب"); return; }
-            
-            // Parse Names (split by comma or newline)
-            const names = rawNames.split(/[\n,]+/).map(n => n.trim()).filter(n => n.length > 0);
-            if (names.length < 1) { alert("أدخل اسم واحد على الأقل"); return; }
-            
-            appState.groupUsers = names.map(n => ({ name: n, score: 0, currentChoice: null }));
-            document.getElementById('user-display').innerText = `المجموعة: ${names.length} طلاب`;
-            document.getElementById('btn-submit-group').style.display = 'block';
-        } else {
-            appState.mode = 'single';
+    function startApp() {
+        state.currentQIndex = 0;
+        state.wrongAnswers = [];
+        state.group = [];
+        state.user.score = 0;
+        
+        const type = document.getElementById('user-type').value;
+        state.mode = type === 'group' ? 'group' : 'single';
+
+        if (state.mode === 'single') {
             const name = document.getElementById('username').value.trim();
-            if (!name) { alert("يرجى كتابة الاسم"); return; }
-            appState.singleUser.name = name;
-            appState.singleUser.gender = type;
-            const title = type === 'male' ? "الشب" : "الصبية";
-            document.getElementById('user-display').innerText = `أهلاً ${title} ${name}`;
-            document.getElementById('btn-submit-group').style.display = 'none';
+            if(!name) return alert('يرجى كتابة الاسم');
+            state.user.name = name;
+            state.user.gender = type;
+            document.getElementById('display-name').innerText = (type === 'male' ? '👤 الكابتن ' : '👤 المتألقة ') + name;
+            document.getElementById('btn-group-submit').style.display = 'none';
+        } else {
+            const raw = document.getElementById('group-names').value;
+            if(!raw.trim()) return alert('يرجى إدخال أسماء الفريق');
+            const names = raw.split(/[\n,]+/).map(n=>n.trim()).filter(n=>n);
+            if(names.length < 1) return alert('اسم واحد على الأقل');
+            state.group = names.map(n => ({ name: n, score: 0, choiceIdx: null })); // choiceIdx refers to the SHUFFLED index
+            document.getElementById('display-name').innerText = `👥 فريق من ${names.length} أبطال`;
+            document.getElementById('btn-group-submit').style.display = 'block';
         }
 
-        document.getElementById('login-screen').classList.remove('active');
-        document.getElementById('quiz-screen').classList.add('active');
+        switchScreen('screen-quiz');
         loadQuestion();
     }
 
-    // --- Question Logic ---
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    /* --- Question Logic --- */
     function loadQuestion() {
-        if (appState.qIndex >= questions.length) {
-            showResults();
-            return;
-        }
+        if (state.currentQIndex >= rawQuestions.length) return finishQuiz();
 
-        const q = questions[appState.qIndex];
-        document.getElementById('q-counter').innerText = `سؤال ${appState.qIndex + 1} / ${questions.length}`;
-        document.getElementById('q-text').innerText = q.text;
+        // 1. Get Question Data
+        const qData = rawQuestions[state.currentQIndex];
         
-        // Reset Group choices
-        if (appState.mode === 'group') {
-            appState.groupUsers.forEach(u => u.currentChoice = null);
-        }
+        // 2. Shuffle Options Logic
+        // Create array of objects to track original index: [{text: "Val", org: 0}, ...]
+        let optsWithIndex = qData.opts.map((txt, idx) => ({ text: txt, originalIdx: idx }));
+        
+        // Randomize
+        state.currentShuffledOpts = shuffleArray([...optsWithIndex]);
 
-        const optsDiv = document.getElementById('opt-container');
-        optsDiv.innerHTML = '';
+        // 3. Render
+        document.getElementById('q-counter').innerText = `${state.currentQIndex + 1} / ${rawQuestions.length}`;
+        document.getElementById('q-text').innerText = qData.text;
         
-        q.opts.forEach((opt, idx) => {
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        state.currentShuffledOpts.forEach((optObj, index) => {
             const btn = document.createElement('div');
-            btn.className = 'option-btn';
-            btn.onclick = () => handleOptionClick(idx);
-            
+            btn.className = 'option-card';
+            btn.onclick = () => handleOptionClick(index); // Pass the SHUFFLED index
             btn.innerHTML = `
-                <div class="option-content">
-                    <span>${opt}</span>
-                    <span style="font-weight:bold; color:#ccc; font-size:1.4rem;">${String.fromCharCode(65+idx)}</span>
+                <div class="opt-letter">${String.fromCharCode(65 + index)}</div>
+                <div style="flex:1">
+                    <div class="opt-text">${optObj.text}</div>
+                    <div id="badge-${index}" class="group-badge-container">
+                        <span class="group-badge"></span>
+                    </div>
                 </div>
-                <div id="badge-${idx}" class="assigned-badge"></div>
             `;
-            optsDiv.appendChild(btn);
+            container.appendChild(btn);
         });
+
+        // Reset Group Logic
+        if(state.mode === 'group') {
+            state.group.forEach(u => u.choiceIdx = null);
+        }
 
         startTimer();
     }
 
-    function handleOptionClick(idx) {
-        if (appState.mode === 'single') {
-            clearInterval(timerInterval);
-            checkAnswerSingle(idx);
-        } else {
-            openStudentSelector(idx);
-        }
-    }
-
-    // --- Timer ---
     function startTimer() {
-        clearInterval(timerInterval);
+        clearInterval(timer);
         timeLeft = TIME_LIMIT;
         updateTimerUI();
-        
-        timerInterval = setInterval(() => {
+        timer = setInterval(() => {
             timeLeft--;
             updateTimerUI();
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                if (appState.mode === 'single') {
-                    checkAnswerSingle(-1); // Timeout
-                } else {
-                    finalizeGroupQuestion(); // Auto submit
-                }
+            if(timeLeft <= 0) {
+                clearInterval(timer);
+                timeOut();
             }
         }, 1000);
     }
 
     function updateTimerUI() {
-        document.getElementById('time-val').innerText = timeLeft;
-        const pct = (timeLeft / TIME_LIMIT) * 100;
+        document.getElementById('timer-num').innerText = timeLeft;
         const bar = document.getElementById('timer-bar');
+        const pct = (timeLeft / TIME_LIMIT) * 100;
         bar.style.width = pct + '%';
         
-        if (timeLeft <= 10) bar.style.background = 'var(--error)';
-        else if (timeLeft <= 20) bar.style.background = 'var(--warning)';
-        else bar.style.background = 'var(--success)';
+        if(timeLeft < 10) bar.style.backgroundColor = 'var(--error)';
+        else if(timeLeft < 20) bar.style.backgroundColor = '#f39c12';
+        else bar.style.backgroundColor = 'var(--success)';
     }
 
-    // --- Group Mode Logic ---
-    let currentEditingOption = null;
+    function timeOut() {
+        if(state.mode === 'single') processAnswer(-1);
+        else submitGroupAnswer();
+    }
 
-    function openStudentSelector(optionIdx) {
-        if (timeLeft <= 0) return;
-        currentEditingOption = optionIdx;
-        const q = questions[appState.qIndex];
-        
-        // Populate Modal
-        document.getElementById('selected-opt-text').innerText = `الخيار (${String.fromCharCode(65+optionIdx)}): ${q.opts[optionIdx]}`;
-        const listDiv = document.getElementById('student-list');
-        listDiv.innerHTML = '';
+    /* --- Interaction --- */
+    let currentEditingOptIndex = null;
 
-        appState.groupUsers.forEach((user) => {
-            const div = document.createElement('div');
-            const isSelected = user.currentChoice === optionIdx;
+    function handleOptionClick(shuffledIndex) {
+        if(state.mode === 'single') {
+            clearInterval(timer);
+            processAnswer(shuffledIndex);
+        } else {
+            if(timeLeft <= 0) return;
+            // Open Student Selector
+            currentEditingOptIndex = shuffledIndex;
+            const optText = state.currentShuffledOpts[shuffledIndex].text;
+            document.getElementById('modal-opt-preview').innerText = optText;
             
-            div.className = `student-checkbox ${isSelected ? 'checked' : ''}`;
-            div.innerText = user.name;
-            div.onclick = () => {
-                if (user.currentChoice === optionIdx) {
-                    user.currentChoice = null;
-                    div.classList.remove('checked');
-                } else {
-                    user.currentChoice = optionIdx;
-                    div.classList.add('checked');
+            const list = document.getElementById('student-list');
+            list.innerHTML = '';
+            
+            state.group.forEach(u => {
+                const div = document.createElement('div');
+                div.className = `st-check ${u.choiceIdx === shuffledIndex ? 'active' : ''}`;
+                div.innerText = u.name;
+                div.onclick = () => {
+                    // Toggle choice
+                    if(u.choiceIdx === shuffledIndex) u.choiceIdx = null; // deselect
+                    else u.choiceIdx = shuffledIndex; // select new
+                    
+                    // Visual update of other boxes handled by re-render or class toggle
+                    closeStudentModal(false); // Update memory
+                    handleOptionClick(shuffledIndex); // Re-open (simple hack to refresh UI) or better:
+                };
+                // Better manual toggle to avoid flicker
+                div.onclick = function() {
+                    // Remove from others
+                    if (u.choiceIdx === shuffledIndex) {
+                        u.choiceIdx = null;
+                        this.classList.remove('active');
+                    } else {
+                        u.choiceIdx = shuffledIndex;
+                        // update UI locally
+                        Array.from(list.children).forEach(c => {
+                           if(c.innerText === u.name) c.classList.add('active'); // Wait, this needs logic to uncheck from other modals if we had them open? 
+                           // Simplification: Just update state and style
+                        });
+                         this.classList.add('active');
+                    }
                 }
-            };
-            listDiv.appendChild(div);
-        });
-
-        document.getElementById('student-modal').style.display = 'flex';
+                list.appendChild(div);
+            });
+            
+            document.getElementById('modal-student').style.display = 'flex';
+        }
     }
 
-    function confirmStudentSelection() {
-        document.getElementById('student-modal').style.display = 'none';
-        updateGroupBadges();
+    function closeStudentModal(realClose = true) {
+        if(realClose) {
+            document.getElementById('modal-student').style.display = 'none';
+            // Render Badges on Options
+            state.currentShuffledOpts.forEach((_, idx) => {
+                const badgeContainer = document.getElementById(`badge-${idx}`);
+                const badgeText = badgeContainer.querySelector('.group-badge');
+                
+                const namesOnThis = state.group.filter(u => u.choiceIdx === idx).map(u => u.name);
+                
+                if(namesOnThis.length > 0) {
+                    badgeContainer.style.display = 'block';
+                    badgeText.innerText = namesOnThis.join('، ');
+                } else {
+                    badgeContainer.style.display = 'none';
+                }
+            });
+        }
     }
 
-    function updateGroupBadges() {
-        for (let i = 0; i < 4; i++) {
-            const badge = document.getElementById(`badge-${i}`);
-            if(badge) { badge.style.display = 'none'; badge.innerText = ''; }
+    /* --- Grading --- */
+    function processAnswer(userShuffledIdx) {
+        const qData = rawQuestions[state.currentQIndex];
+        const correctAnswerOriginalIdx = qData.correctIdx;
+        
+        let isCorrect = false;
+        let selectedText = "انتهى الوقت";
+        let correctText = qData.opts[correctAnswerOriginalIdx];
+
+        if(userShuffledIdx !== -1) {
+            // Check if the selected shuffled option maps to the original correct index
+            const selectedOptObj = state.currentShuffledOpts[userShuffledIdx];
+            selectedText = selectedOptObj.text;
+            if (selectedOptObj.originalIdx === correctAnswerOriginalIdx) {
+                isCorrect = true;
+            }
         }
 
-        const counts = {}; 
-        appState.groupUsers.forEach(u => {
-            if (u.currentChoice !== null) {
-                if (!counts[u.currentChoice]) counts[u.currentChoice] = [];
-                counts[u.currentChoice].push(u.name);
-            }
-        });
-
-        Object.keys(counts).forEach(optIdx => {
-            const badge = document.getElementById(`badge-${optIdx}`);
-            if (badge) {
-                badge.style.display = 'block';
-                const names = counts[optIdx].join('، ');
-                badge.innerText = `${names}`;
-            }
-        });
-    }
-
-    function finalizeGroupQuestion() {
-        clearInterval(timerInterval);
-        const q = questions[appState.qIndex];
-        const correctIdx = q.correct;
-        
-        let correctNames = [];
-        let wrongNames = [];
-
-        appState.groupUsers.forEach(u => {
-            if (u.currentChoice === correctIdx) {
-                u.score++;
-                correctNames.push(u.name);
-            } else {
-                wrongNames.push(u.name);
-            }
-        });
-
-        const modal = document.getElementById('feedback-modal');
+        // Show Feedback
+        const modal = document.getElementById('modal-feedback');
         const icon = document.getElementById('fb-icon');
         const title = document.getElementById('fb-title');
-        const details = document.getElementById('fb-details');
+        const desc = document.getElementById('fb-desc');
 
         modal.style.display = 'flex';
-        icon.innerText = "📊";
-        title.innerText = "نتيجة السؤال";
-        
-        details.innerHTML = `
-            <div style="background:#e8f8f5; padding:10px; border-radius:10px; margin-bottom:10px; color:var(--success); font-weight:bold;">
-                الإجابة الصحيحة: ${q.opts[correctIdx]}
-            </div>
-            <div>
-                <span style="color:var(--success)">✅ الأبطال (${correctNames.length}):</span> ${correctNames.join(', ') || 'لا يوجد'}
-            </div>
-            <div style="margin-top:5px;">
-                <span style="color:var(--error)">❌ حاولوا مرة ثانية:</span> ${wrongNames.join(', ') || 'لا يوجد'}
-            </div>
-        `;
-        
-        if (correctNames.length > 0) fireConfetti();
-    }
 
-    // --- Single Mode Logic ---
-    function checkAnswerSingle(idx) {
-        const q = questions[appState.qIndex];
-        const isCorrect = idx === q.correct;
-        const isTimeout = idx === -1;
-
-        const modal = document.getElementById('feedback-modal');
-        const icon = document.getElementById('fb-icon');
-        const title = document.getElementById('fb-title');
-        const details = document.getElementById('fb-details');
-        
-        modal.style.display = 'flex';
-
-        if (isCorrect) {
-            appState.singleUser.score++;
+        if(isCorrect) {
+            state.user.score++;
             icon.innerText = "🎉";
-            title.innerText = "إجابة صحيحة!";
+            title.innerText = "كفو! إجابة صحيحة";
             title.style.color = "var(--success)";
-            details.innerText = "كفو عليك يا وحش، استمر!";
+            desc.innerHTML = `استمر يا وحش!`;
             fireConfetti();
         } else {
-            appState.wrongAnswers.push({
-                q: q.text,
-                user: isTimeout ? "انتهى الوقت" : q.opts[idx],
-                correct: q.opts[q.correct]
-            });
-
-            icon.innerText = isTimeout ? "⏰" : "⚠️";
-            title.innerText = isTimeout ? "راح الوقت!" : "إجابة خاطئة";
+            state.wrongAnswers.push({ q: qData.text, yours: selectedText, right: correctText });
+            icon.innerText = userShuffledIdx === -1 ? "⏰" : "⚠️";
+            title.innerText = userShuffledIdx === -1 ? "راح الوقت" : "إجابة خاطئة";
             title.style.color = "var(--error)";
-            details.innerHTML = `
-                الإجابة الصحيحة كانت:<br>
-                <b style="color:var(--success); font-size:1.2rem;">${q.opts[q.correct]}</b>
-            `;
-            
-            modal.querySelector('.modal-content').classList.add('shake');
-            setTimeout(()=> modal.querySelector('.modal-content').classList.remove('shake'), 500);
+            desc.innerHTML = `الإجابة الصح كانت:<br><b style="color:var(--success); font-size:1.3rem; margin-top:5px; display:block;">${correctText}</b>`;
         }
     }
 
-    function nextQuestion() {
-        document.getElementById('feedback-modal').style.display = 'none';
-        appState.qIndex++;
+    function submitGroupAnswer() {
+        clearInterval(timer);
+        const qData = rawQuestions[state.currentQIndex];
+        const correctOrgIdx = qData.correctIdx;
+
+        let winners = [];
+        let losers = [];
+
+        state.group.forEach(u => {
+            if(u.choiceIdx !== null) {
+                // Check against shuffle map
+                const chosenObj = state.currentShuffledOpts[u.choiceIdx];
+                if(chosenObj.originalIdx === correctOrgIdx) {
+                    u.score++;
+                    winners.push(u.name);
+                } else {
+                    losers.push(u.name);
+                }
+            } else {
+                losers.push(u.name + " (ما جاوب)");
+            }
+        });
+
+        const modal = document.getElementById('modal-feedback');
+        document.getElementById('fb-icon').innerText = "📊";
+        const title = document.getElementById('fb-title');
+        title.innerText = "تحليل النتائج";
+        title.style.color = "var(--primary)";
+        
+        const correctTxt = qData.opts[correctOrgIdx];
+        document.getElementById('fb-desc').innerHTML = `
+            <div style="background:#e8f8f5; padding:10px; border-radius:8px; margin-bottom:10px; color:var(--success); font-weight:bold;">
+                الجواب: ${correctTxt}
+            </div>
+            <div style="text-align:right; font-size:0.95rem;">
+                <p>✅ <b>صح (${winners.length}):</b> ${winners.join('، ') || '-'}</p>
+                <p>❌ <b>خطأ (${losers.length}):</b> ${losers.join('، ') || '-'}</p>
+            </div>
+        `;
+        modal.style.display = 'flex';
+        if(winners.length > 0) fireConfetti();
+    }
+
+    function nextQ() {
+        document.getElementById('modal-feedback').style.display = 'none';
+        state.currentQIndex++;
         loadQuestion();
     }
 
-    // --- Result Screen ---
-    function showResults() {
-        document.getElementById('quiz-screen').classList.remove('active');
-        document.getElementById('result-screen').classList.add('active');
-
-        if (appState.mode === 'single') {
-            document.getElementById('single-result-area').style.display = 'block';
-            document.getElementById('group-result-area').style.display = 'none';
+    /* --- Finish --- */
+    function finishQuiz() {
+        switchScreen('screen-result');
+        const greeting = document.getElementById('result-greeting');
+        
+        if(state.mode === 'single') {
+            document.getElementById('res-single').style.display = 'block';
+            document.getElementById('res-group').style.display = 'none';
             
-            const pct = Math.round((appState.singleUser.score / questions.length) * 100);
-            document.getElementById('final-score').innerText = `%${pct}`;
+            const pct = Math.round((state.user.score / rawQuestions.length) * 100);
+            document.getElementById('final-score').innerText = pct + "%";
             
-            const genderTitle = appState.singleUser.gender === 'male' ? "يا شب" : "يا صبية";
-            let msg = pct >= 80 ? `أبدعت ${genderTitle}!` : `يعطيك العافية ${genderTitle}`;
-            document.getElementById('end-greeting').innerText = `${msg} ${appState.singleUser.name}`;
-
-            const revDiv = document.getElementById('single-review');
-            if (appState.wrongAnswers.length > 0) {
-                revDiv.innerHTML = '<h3 style="color:var(--error); margin-bottom:10px;">أخطاء لازم نراجعها:</h3>';
-                appState.wrongAnswers.forEach(w => {
-                    revDiv.innerHTML += `
-                        <div style="background:#fff0f0; padding:10px; margin-bottom:10px; border-radius:8px; border-right:4px solid var(--error);">
-                            <div style="font-size:0.9rem;">${w.q}</div>
-                            <div style="color:var(--error)">❌ ${w.user}</div>
-                            <div style="color:var(--success); font-weight:bold;">✅ ${w.correct}</div>
+            let msg = pct > 80 ? "أداء أسطوري!" : (pct > 50 ? "وحش، بس بدك مراجعة" : "يعطيك العافية، حاول كمان مرة");
+            greeting.innerText = msg;
+            
+            // Wrong Answers Review
+            const list = document.getElementById('review-list');
+            list.innerHTML = '';
+            if(state.wrongAnswers.length === 0) {
+                list.innerHTML = '<h3 style="color:var(--success)">علامة كاملة! ما شاء الله 🌟</h3>';
+            } else {
+                list.innerHTML = '<h4 style="color:var(--error); margin-bottom:10px;">راجع أخطاءك:</h4>';
+                state.wrongAnswers.forEach(w => {
+                    list.innerHTML += `
+                        <div style="background:#fff5f5; padding:10px; border-radius:8px; margin-bottom:8px; border-right:4px solid var(--error);">
+                            <div style="font-size:0.85rem; color:#555;">${w.q}</div>
+                            <div style="color:var(--error); font-weight:bold;">انت اخترت: ${w.yours}</div>
+                            <div style="color:var(--success); font-weight:bold;">الصح: ${w.right}</div>
                         </div>
                     `;
                 });
-            } else {
-                revDiv.innerHTML = '<h3 style="color:var(--success);">علامة كاملة! ما شاء الله.</h3>';
             }
 
         } else {
-            // Group Result
-            document.getElementById('single-result-area').style.display = 'none';
-            document.getElementById('group-result-area').style.display = 'block';
-            document.getElementById('end-greeting').innerText = "نتائج مجموعة X Academy";
-
-            const sorted = [...appState.groupUsers].sort((a,b) => b.score - a.score);
-            const tbody = document.getElementById('leaderboard-body');
+            // Group Leaderboard
+            document.getElementById('res-single').style.display = 'none';
+            document.getElementById('res-group').style.display = 'block';
+            greeting.innerText = "نتائج أبطال VLOOKUP";
+            
+            const sorted = [...state.group].sort((a,b) => b.score - a.score);
+            const tbody = document.getElementById('lb-body');
             tbody.innerHTML = '';
             
             sorted.forEach((u, i) => {
                 const tr = document.createElement('tr');
-                if (i === 0) tr.classList.add('rank-1');
+                if(i === 0) tr.className = 'rank-1';
                 tr.innerHTML = `
-                    <td>${i+1}</td>
-                    <td>${u.name} ${i===0 ? '👑' : ''}</td>
-                    <td>${u.score} / ${questions.length}</td>
+                    <td>${i===0 ? '👑' : i+1}</td>
+                    <td>${u.name}</td>
+                    <td>${u.score} / ${rawQuestions.length}</td>
                 `;
                 tbody.appendChild(tr);
             });
-            
             fireConfetti();
         }
     }
 
-    // --- Confetti ---
+    /* --- Effects --- */
     function fireConfetti() {
-        const canvas = document.getElementById('confetti-canvas');
+        const canvas = document.getElementById('confetti');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        const particles = [];
-        for(let i=0; i<100; i++) particles.push({
-            x: Math.random()*canvas.width, y: Math.random()*canvas.height - canvas.height,
-            color: `hsl(${Math.random()*360}, 100%, 50%)`, size: Math.random()*10+5,
-            speed: Math.random()*5+2, angle: Math.random()*6
-        });
-        let d = 0;
-        function anim() {
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            particles.forEach(p => {
-                p.y += p.speed; p.x += Math.sin(p.angle); p.angle+=0.1;
-                ctx.fillStyle = p.color; ctx.fillRect(p.x,p.y,p.size,p.size);
+        
+        let particles = [];
+        const colors = ['#099999', '#FFD700', '#e74c3c', '#27ae60', '#3498db'];
+        
+        for(let i=0; i<150; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 5,
+                h: Math.random() * 10 + 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: Math.random() * 5 + 2,
+                angle: Math.random() * 360
             });
-            if(d++ < 200) requestAnimationFrame(anim);
-            else ctx.clearRect(0,0,canvas.width,canvas.height);
         }
-        anim();
+
+        let frame = 0;
+        function loop() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y += p.speed;
+                p.angle += 2;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctx.restore();
+            });
+            if(frame++ < 250) requestAnimationFrame(loop);
+            else ctx.clearRect(0,0,canvas.width, canvas.height);
+        }
+        loop();
     }
 </script>
-
 </body>
 </html>
